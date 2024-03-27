@@ -13,7 +13,7 @@ all: $(BIN)
 $(BIN): $(HEADER_FILES) $(OBJECT_FILES)
 	$(CC) $(CFLAGS) $(OBJECT_FILES) -o $@
 
-$(OBJECT_FILES): %.o: %.c
+$(OBJECT_FILES): %.o: %.cpp
 	$(CC) -c $(CFLAGS) $< -o $@
 
 pack: $(PACK)
