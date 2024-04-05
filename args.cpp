@@ -43,7 +43,8 @@ void ArgParser::print_usage() {
     std::cout << "  -i <ifile>          the name of the input file (data to compress or decompress depending on the application mode)" << std::endl;
     std::cout << "  -o <ofile>          the name of the output file (the resulting compressed or decompressed data)" << std::endl;
     std::cout << "  -w <width_value>    specify the image width (the width_value is expected to be grater than 0 -- width_value >= 1)," << std::endl;
-    std::cout << "                      must be specified in case of the compression application mode (parameter -c)" << std::endl;
+    std::cout << "                      must be specified in case of the compression application mode with the adaptive image scanning" << std::endl;
+    std::cout << "                      (parameters -ca)" << std::endl;
     std::cout << "  -h                  print the help to the standard output and exit" << std::endl;
 }
 
@@ -92,8 +93,8 @@ bool ArgParser::parse_args(int argc, char *argv[]) {
     }
 
     if (compress) {
-        if (width_value_arg == NULL) {
-            std::cerr << "For compression (paramater -c), the image width (parameter -w) must be set" << std::endl;
+        if (width_value_arg == NULL && adapt) {
+            std::cerr << "For the compression with the adaptive image scanning (paramaters -ca), the image width (parameter -w) must be set" << std::endl;
             return false;
         }
 
