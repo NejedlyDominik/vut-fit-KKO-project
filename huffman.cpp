@@ -5,12 +5,12 @@
 #include <iostream>
 
 
-std::vector<uint16_t> HClen(const std::vector<uint64_t> &freq) {
-    uint16_t m = freq.size();
-    std::vector<uint16_t> hr(2 * m), bitlen(m);
-    std::vector<std::pair<uint64_t, uint16_t>> h(m);
+std::vector<std::uint16_t> HClen(const std::vector<std::uint64_t> &freq) {
+    std::uint16_t m = freq.size();
+    std::vector<std::uint16_t> hr(2 * m), bitlen(m);
+    std::vector<std::pair<std::uint64_t, std::uint16_t>> h(m);
 
-    for (uint16_t i = 0; i < m; i++) {
+    for (std::uint16_t i = 0; i < m; i++) {
         h[i] = std::make_pair(freq[i], m + i);
     }
 
@@ -35,9 +35,9 @@ std::vector<uint16_t> HClen(const std::vector<uint64_t> &freq) {
     }
 
     // Determine code lengths
-    for (uint16_t i = 0; i < freq.size(); i++) {
-        uint16_t j = hr[freq.size() + i];
-        uint16_t l = 1;
+    for (std::uint16_t i = 0; i < freq.size(); i++) {
+        std::uint16_t j = hr[freq.size() + i];
+        std::uint16_t l = 1;
 
         while (j > 1) {
             j = hr[j];
@@ -48,22 +48,4 @@ std::vector<uint16_t> HClen(const std::vector<uint64_t> &freq) {
     }
 
     return bitlen;
-}
-
-
-
-
-
-int main(int argc, char *argv[]) {
-    std::vector<char> symb = {'a', 'b', 'c', 'd'};
-    std::vector<uint64_t> freq = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-
-    auto a = HClen(freq);
-
-    for (uint16_t &b: a) {
-        std::cout << b << " ";
-    }
-    std::cout << std::endl;
-
-    return 0;
 }

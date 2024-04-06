@@ -11,6 +11,7 @@
 #include <cstdlib>
 
 #include "args.h"
+#include "io.h"
 
 
 int main(int argc, char *argv[]) {
