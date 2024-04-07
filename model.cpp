@@ -12,21 +12,21 @@
 
 
 void adj_val_diff_encode(std::vector<std::uint8_t> &data) {
-    std::uint8_t new_val, prev_val = 0;
+    std::uint8_t diff, prev = 0;
 
     for (auto &val: data) {
-        new_val = val - prev_val;
-        prev_val = val;
-        val = new_val;
+        diff = val - prev;
+        prev = val;
+        val = diff;
     } 
 }
 
 
 void adj_val_diff_decode(std::vector<std::uint8_t> &data) {
-    std::uint8_t prev_val = 0;
+    std::uint8_t prev = 0;
 
     for (auto &val: data) {
-        val += prev_val;
-        prev_val = val;
+        val += prev;
+        prev = val;
     }
 }
