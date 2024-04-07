@@ -20,12 +20,12 @@
  */
 class ArgParser {
     public:
-        bool compress;          // compression or decompression
-        bool model;             // model and RLE
-        bool adapt;             // adaptie scanning
+        bool compress;              // compression or decompression
+        bool model;                 // model and RLE
+        bool adapt;                 // adaptie scanning
         char *input_file;
         char *output_file;
-        uint64_t width_value;   // image width  
+        std::uint64_t width_value;  // image width  
         bool help;
 
         /**
