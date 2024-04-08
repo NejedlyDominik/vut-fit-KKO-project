@@ -34,7 +34,7 @@ class ArgParser {
         ArgParser();
 
         /**
-         * Print usage of the program to standard output.
+         * Print usage of the program to the standard output.
          */
         void print_usage();
 
