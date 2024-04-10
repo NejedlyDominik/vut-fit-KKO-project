@@ -13,6 +13,7 @@
 
 
 #include <vector>
+#include <string>
 #include <cstdint>
 
 
@@ -24,7 +25,7 @@
  * 
  * @return True if the file data are successfully read, false otherwise.
  */
-bool read_bin_file(char *filename, std::vector<std::uint8_t> &buffer);
+bool read_bin_file(const std::string &filename, std::vector<std::uint8_t> &buffer);
 
 /**
  * Write the contents of the buffer to the file.
@@ -34,7 +35,7 @@ bool read_bin_file(char *filename, std::vector<std::uint8_t> &buffer);
  * 
  * @return True in case of successful writing of data to the file, false otherwise.
  */
-bool write_bin_file(char *filename, std::vector<std::uint8_t> &buffer);
+bool write_bin_file(const std::string &filename, std::vector<std::uint8_t> &buffer);
 
 
 #endif

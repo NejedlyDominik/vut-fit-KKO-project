@@ -43,7 +43,7 @@ void encode_and_append_symbol(std::vector<std::uint8_t> &result, uint8_t count, 
 }
 
 
-std::vector<std::uint8_t> rle_encode(std::vector<std::uint8_t> &data, std::uint8_t marker) {
+std::vector<std::uint8_t> encode_rle(std::vector<std::uint8_t> &data, std::uint8_t marker) {
     std::vector<std::uint8_t> result;
 
     if (data.empty()) {
@@ -69,7 +69,7 @@ std::vector<std::uint8_t> rle_encode(std::vector<std::uint8_t> &data, std::uint8
 }
 
 
-std::vector<std::uint8_t> rle_decode(std::vector<std::uint8_t> &data, std::uint8_t marker) {
+std::vector<std::uint8_t> decode_rle(std::vector<std::uint8_t> &data, std::uint8_t marker) {
     std::uint8_t count, state = MARKER;
     std::vector<std::uint8_t> result;
 

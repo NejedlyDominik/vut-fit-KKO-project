@@ -1,8 +1,8 @@
 CC=g++
 CFLAGS=-std=c++17 -Wall -Wextra -Werror -pedantic -O3
-SRC_FILES=main.cpp args.cpp io.cpp model.cpp rle.cpp
-HEADER_FILES=args.h io.h model.h rle.h
-OBJECT_FILES=main.o args.o io.o model.o rle.o
+SRC_FILES=main.cpp args.cpp io.cpp model.cpp rle.cpp huffman.cpp
+HEADER_FILES=args.h io.h model.h rle.h huffman.h
+OBJECT_FILES=main.o args.o io.o model.o rle.o huffman.o
 BIN=huff_codec
 PACK=xnejed09.zip
 

@@ -24,7 +24,7 @@
  * 
  * @return Encoded data.
  */
-std::vector<std::uint8_t> rle_encode(std::vector<std::uint8_t> &data, std::uint8_t marker);
+std::vector<std::uint8_t> encode_rle(std::vector<std::uint8_t> &data, std::uint8_t marker);
 
 /**
  * Decode data encoded using RLE.
@@ -34,7 +34,7 @@ std::vector<std::uint8_t> rle_encode(std::vector<std::uint8_t> &data, std::uint8
  * 
  * @return Decoded data.
  */
-std::vector<std::uint8_t> rle_decode(std::vector<std::uint8_t> &data, std::uint8_t marker);
+std::vector<std::uint8_t> decode_rle(std::vector<std::uint8_t> &data, std::uint8_t marker);
 
 
 #endif

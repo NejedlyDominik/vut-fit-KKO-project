@@ -21,14 +21,14 @@
  * 
  * @param data the data to be encoded (contains the result after encoding)
  */
-void adj_val_diff_encode(std::vector<std::uint8_t> &data);
+void encode_adj_val_diff(std::vector<std::uint8_t> &data);
 
 /**
  * Decode data encoded by adjacent value difference transformation.
  * 
  * @param data the data to be decoded (contains the result after decoding)
  */
-void adj_val_diff_decode(std::vector<std::uint8_t> &data);
+void decode_adj_val_diff(std::vector<std::uint8_t> &data);
 
 
 #endif

@@ -11,9 +11,16 @@
 #include <cstdlib>
 
 #include "args.h"
+#include "io.h"
+#include "huffman.h"
 
 
 int main(int argc, char *argv[]) {
+    std::vector<std::uint8_t> data;
+    read_bin_file("./data/hd01.raw", data);
+    encode_huffman(data);
+
+    exit(0);
     ArgParser arg_parser = ArgParser();
     
     if (!arg_parser.parse_args(argc, argv)) {
