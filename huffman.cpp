@@ -5,9 +5,20 @@
 #include <iostream>
 
 
-std::vector<std::uint16_t> HClen(const std::vector<std::uint64_t> &freq) {
+std::vector<std::uint64_t> get_freq(const std::vector<std::uint8_t> &data) {
+    std::vector<std::uint64_t> freq(UINT8_MAX);
+
+    for (const auto &val: data) {
+        freq[val]++;
+    }
+
+    return freq;
+}
+
+
+std::vector<std::uint8_t> get_huff_code_len(const std::vector<std::uint64_t> &freq) {
     std::uint16_t m = freq.size();
-    std::vector<std::uint16_t> hr(2 * m), bitlen(m);
+    std::vector<std::uint16_t> hr(2 * m);
     std::vector<std::pair<std::uint64_t, std::uint16_t>> h(m);
 
     for (std::uint16_t i = 0; i < m; i++) {
@@ -34,10 +45,12 @@ std::vector<std::uint16_t> HClen(const std::vector<std::uint64_t> &freq) {
         std::push_heap(h.begin(), h.end(), std::greater<>{});
     }
 
+    std::vector<std::uint8_t> bitlen(m);
+
     // Determine code lengths
     for (std::uint16_t i = 0; i < freq.size(); i++) {
         std::uint16_t j = hr[freq.size() + i];
-        std::uint16_t l = 1;
+        std::uint8_t l = 1;
 
         while (j > 1) {
             j = hr[j];
