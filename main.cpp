@@ -16,10 +16,10 @@
 
 
 int main(int argc, char *argv[]) {
-    std::vector<std::uint8_t> data;
-    read_bin_file("./data/hd01.raw", data);
-    encode_huffman(data);
-
+    std::vector<std::uint8_t> data{'a','a','a','a','a','a','a','a','a','a','b','c','c','c','c','c','c','c','c','c','c','c','c','c','c','c','d','d','d','d','d','d','d'};
+    //read_bin_file("./data/hd01.raw", data);
+    auto encoded_data = encode_huffman(data);
+    write_bin_file("test.out", encoded_data);
     exit(0);
     ArgParser arg_parser = ArgParser();
     
