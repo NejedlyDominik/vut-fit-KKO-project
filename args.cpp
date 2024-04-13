@@ -17,17 +17,6 @@
 #include "args.h"
 
 
-ArgParser::ArgParser() {
-    compress = true;
-    model = false;
-    adapt = false;
-    input_file = NULL;
-    output_file = NULL;
-    width_value = 0;
-    help = false;
-}
-
-
 void ArgParser::print_usage() {
     std::cout << "KKO - Project - Image data compression using Huffman encoding" << std::endl;
     std::cout << std::endl;

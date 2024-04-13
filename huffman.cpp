@@ -8,7 +8,7 @@
 #define BYTE_VALUE_COUNT 256
 #define FIRST_CODE 0
 #define BYTE_BIT_LENGTH 8
-#define BlOCK_END_SYMBOL BYTE_VALUE_COUNT
+#define END_OF_BLOCK BYTE_VALUE_COUNT
 
 
 std::vector<std::uint64_t> get_freqs(const std::vector<std::uint8_t> &data) {
@@ -25,8 +25,8 @@ std::vector<std::uint64_t> get_freqs(const std::vector<std::uint8_t> &data) {
 class HuffmanEncoder {
     private:
         std::vector<std::pair<uint8_t, uint64_t>> codes;
-        std::uint8_t encoded_byte;
-        std::uint8_t remaining_byte_bit_count;
+        std::uint8_t encoded_buffer;
+        std::uint8_t remaining_buffer_bit_count;
         std::vector<std::vector<uint8_t>> code_bitlen_to_symbols;
 
         std::vector<std::uint8_t> compute_code_bitlens(const std::vector<std::uint64_t> &freqs) {
@@ -88,8 +88,8 @@ class HuffmanEncoder {
             }
 
             if (!used_symbols.empty()) {
-                // Add special block end symbol (256 = BLOCK_END_SYMBOL) with zero implicit occurence to ensure that its code is one of the longest to be able to recompute it when decoding
-                used_symbols.push_back(BlOCK_END_SYMBOL);
+                // Add a special end-of-block symbol (256) with zero default occurrence to determine the length of the code so that it can be recomputed during decoding
+                used_symbols.push_back(END_OF_BLOCK);
                 used_symbol_freqs.push_back(0);
 
                 const auto code_bitlens = compute_code_bitlens(used_symbol_freqs);
@@ -116,17 +116,20 @@ class HuffmanEncoder {
 
                 code_bitlen_to_symbols.resize(code_bitlens_and_used_symbols.back().first);
 
-                // Collect symbols according to their lengths but exclude special data end symbol
+                // Collect symbols according to their lengths but exclude the special end-of-block symbol symbol
                 for (auto it = code_bitlens_and_used_symbols.begin(), end = code_bitlens_and_used_symbols.end() - 1; it != end; it++) {
                     code_bitlen_to_symbols[it->first - 1].push_back(it->second);
                 }
             }
         }
 
+        void clear_buffer() {
+            encoded_buffer = 0;
+            remaining_buffer_bit_count = BYTE_BIT_LENGTH;
+        }
+
     public:
         void initialize_encoding(const std::vector<std::uint64_t> &freqs, std::vector<std::uint8_t> &encoded_data) {
-            encoded_byte = 0;
-            remaining_byte_bit_count = BYTE_BIT_LENGTH;
             compute_codes(freqs);
             encoded_data.push_back(code_bitlen_to_symbols.size() - 1);
 
@@ -137,6 +140,8 @@ class HuffmanEncoder {
             for (const auto &symbols: code_bitlen_to_symbols) {
                 encoded_data.insert(encoded_data.end(), symbols.begin(), symbols.end());
             }
+
+            clear_buffer();
         }
 
         void encode_symbol(const std::uint16_t symbol, std::vector<std::uint8_t> &encoded_data) {
@@ -144,12 +149,11 @@ class HuffmanEncoder {
             auto remaining_code_bit_count = code.first;
             auto code_value = code.second;
 
-            if (remaining_code_bit_count >= remaining_byte_bit_count) {
-                remaining_code_bit_count -= remaining_byte_bit_count;
-                encoded_byte |= (UINT8_MAX >> (BYTE_BIT_LENGTH - remaining_byte_bit_count)) & (code_value >> remaining_code_bit_count);
-                encoded_data.push_back(encoded_byte);
-                encoded_byte = 0;
-                remaining_byte_bit_count = BYTE_BIT_LENGTH;
+            if (remaining_code_bit_count >= remaining_buffer_bit_count) {
+                remaining_code_bit_count -= remaining_buffer_bit_count;
+                encoded_buffer |= (UINT8_MAX >> (BYTE_BIT_LENGTH - remaining_buffer_bit_count)) & (code_value >> remaining_code_bit_count);
+                encoded_data.push_back(encoded_buffer);
+                clear_buffer();
 
                 while (remaining_code_bit_count >= BYTE_BIT_LENGTH) {
                     remaining_code_bit_count -= BYTE_BIT_LENGTH;
@@ -158,9 +162,9 @@ class HuffmanEncoder {
             }
 
             if (remaining_code_bit_count > 0) {
-                std::uint8_t mask = UINT8_MAX >> (BYTE_BIT_LENGTH - remaining_byte_bit_count);
-                remaining_byte_bit_count -= remaining_code_bit_count;
-                encoded_byte |= mask & (code_value << remaining_byte_bit_count);
+                std::uint8_t mask = UINT8_MAX >> (BYTE_BIT_LENGTH - remaining_buffer_bit_count);
+                remaining_buffer_bit_count -= remaining_code_bit_count;
+                encoded_buffer |= mask & (code_value << remaining_buffer_bit_count);
             }
         }
 
@@ -171,10 +175,8 @@ class HuffmanEncoder {
         }
 
         void finalize_encoding(std::vector<std::uint8_t> &encoded_data) {
-            if (remaining_byte_bit_count < BYTE_BIT_LENGTH) {
-                encoded_data.push_back(encoded_byte);
-                encoded_byte = 0;
-                remaining_byte_bit_count = BYTE_BIT_LENGTH;
+            if (remaining_buffer_bit_count < BYTE_BIT_LENGTH) {
+                encoded_data.push_back(encoded_buffer);
             }
         }
 };
@@ -187,7 +189,7 @@ std::vector<std::uint8_t> encode_huffman(const std::vector<std::uint8_t> &data) 
     huffman_encoder.initialize_encoding(freqs, encoded_data);
     huffman_encoder.encode_data(data, encoded_data);
 
-    // Encode special data end symbol at the end of encoded data
+    // Encode the special end-of-block symbol symbol at the end of encoded data
     huffman_encoder.encode_symbol(BYTE_VALUE_COUNT, encoded_data);
     huffman_encoder.finalize_encoding(encoded_data);
 
@@ -202,16 +204,53 @@ std::vector<std::uint8_t> encode_huffman(const std::vector<std::uint8_t> &data) 
 
 class HuffmanDecoder {
     private:
+        std::vector<std::uint8_t>::const_iterator current_data_it;
+        std::vector<std::uint8_t>::const_iterator data_end_it;
         std::vector<std::uint64_t> first_code;
         std::vector<std::uint8_t> first_symbol;
         std::vector<std::uint16_t> alphabet;
+        std::uint8_t encoded_buffer;
+        std::uint8_t remaining_buffer_bit_count;
 
     public:
-        void set_source() {
-
+        void set_source(const std::vector<std::uint8_t> &data) {
+            current_data_it = data.begin();
+            data_end_it = data.end();
         }
 
         bool initialize_decoding() {
+            if (current_data_it == data_end_it) {
+                return false;
+            }
+
+            std::uint16_t code_count_number = *current_data_it++ + 1;
+
+            if (current_data_it + code_count_number > data_end_it) {
+                return false;
+            }
+
+            std::uint64_t code_value = 0;
+            std::uint16_t symbol = 0;
+
+            first_code.resize(code_count_number + 1);
+            first_symbol.resize(code_count_number);
+
+            for (std::uint16_t i = 0; i < code_count_number; i++) {
+                first_code[i] = code_value;
+                first_symbol[i] = symbol;
+                code_value = (code_value + *current_data_it) << 1;
+                symbol += *current_data_it++;
+            }
+
+            if (current_data_it + symbol > data_end_it) {
+                return false;
+            }
+
+            alphabet.insert(alphabet.end(), current_data_it, current_data_it + symbol);
+            // Add the special end-of-block symbol to alphabet
+            alphabet.push_back(END_OF_BLOCK);
+            // Adapt the anchor code to the special end-of-block symbol
+            first_code[code_count_number] = code_value + 2;
             return true;
         }
 
@@ -219,40 +258,24 @@ class HuffmanDecoder {
             return true;
         }
 
-        bool decode_data() {
+        bool decode_block() {
             return true;
         }
 
-        bool prepare_next_block() {
+        bool TODO() {
             return true;
         }
 };
 
 
 std::vector<std::uint8_t> decode_huffman(const std::vector<std::uint8_t> &data) {
-    std::uint16_t code_count_number = data.front() + 1;
-    std::vector<std::uint64_t> first_code(code_count_number + 1);
-    std::vector<std::uint8_t> first_symbol(code_count_number);
-    std::vector<std::uint16_t> alphabet;
-    std::uint64_t code_value = 0;
-    std::uint16_t symbol = 0;
-
-    for (std::uint16_t i = 0; i < code_count_number; i++) {
-        first_code[i] = code_value;
-        first_symbol[i] = symbol;
-        code_value = (code_value + data[i + 1]) << 1;
-        symbol += data[i + 1];
-    }
-
-    alphabet.insert(alphabet.end(), data.begin() + code_count_number + 1, data.begin() + code_count_number + 1 + symbol);
-    // Add special data end symbol to alphabet
-    alphabet.push_back(BlOCK_END_SYMBOL);
-    // Adapt the anchor code to the special data end symbol
-    first_code[code_count_number] = code_value + 2;
+    auto huffman_decoder = HuffmanDecoder();
+    huffman_decoder.set_source(data);
+    huffman_decoder.initialize_decoding();
 
     std::vector<std::uint8_t> decoded_data;
 
-    code_value = 0;
+//    code_value = 0;
 //    uint16_t code_len = 0;
 
     return decoded_data;

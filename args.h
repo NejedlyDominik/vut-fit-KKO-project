@@ -20,18 +20,13 @@
  */
 class ArgParser {
     public:
-        bool compress;              // compression or decompression
-        bool model;                 // model and RLE
-        bool adapt;                 // adaptie scanning
-        char *input_file;
-        char *output_file;
-        std::uint64_t width_value;  // image width  
-        bool help;
-
-        /**
-         * Initialize values of instance variables of ArgParser class.
-         */
-        ArgParser();
+        bool compress = true;           // compression or decompression
+        bool model = false;             // model and RLE
+        bool adapt = false;             // adaptie scanning
+        char *input_file = NULL;
+        char *output_file = NULL;
+        std::uint64_t width_value = 0;  // image width  
+        bool help = false;
 
         /**
          * Print usage of the program to the standard output.
