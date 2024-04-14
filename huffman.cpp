@@ -1,3 +1,13 @@
+/**
+ * VUT FIT KKO - Project - Image data compression using Huffman encoding
+ *
+ * @author Dominik Nejedlý (xnejed09)
+ * @date 14. 4. 2024
+ * 
+ * @brief Huffman code encoding and decoding module
+ */
+
+
 #include <algorithm>
 #include <utility>
 #include <iostream>
@@ -192,12 +202,6 @@ std::vector<std::uint8_t> encode_huffman(const std::vector<std::uint8_t> &data) 
     // Encode the special end-of-block symbol symbol at the end of encoded data
     huffman_encoder.encode_symbol(BYTE_VALUE_COUNT, encoded_data);
     huffman_encoder.finalize_encoding(encoded_data);
-
-    for (const auto &val: encoded_data) {
-        std::cout << unsigned(val) << " ";
-    }
-    std::cout << std::endl;
-    
     return encoded_data;
 }
 
@@ -219,13 +223,10 @@ class HuffmanDecoder {
         }
 
         bool initialize_decoding() {
-            if (current_data_it == data_end_it) {
-                return false;
-            }
-
             std::uint16_t code_count_number = *current_data_it++ + 1;
 
             if (current_data_it + code_count_number > data_end_it) {
+                std::cerr << "Invalid number of symbol counts" << std::endl;
                 return false;
             }
 
@@ -243,27 +244,66 @@ class HuffmanDecoder {
             }
 
             if (current_data_it + symbol > data_end_it) {
+                std::cerr << "Invalid symbol alphabet" << std::endl;
                 return false;
             }
 
             alphabet.insert(alphabet.end(), current_data_it, current_data_it + symbol);
+            current_data_it += symbol;
+
             // Add the special end-of-block symbol to alphabet
             alphabet.push_back(END_OF_BLOCK);
             // Adapt the anchor code to the special end-of-block symbol
             first_code[code_count_number] = code_value + 2;
+
+            remaining_buffer_bit_count = 0;
             return true;
         }
 
-        bool decode_symbol() {
+        bool decode_symbol(std::uint16_t &symbol) {
+            std::uint64_t code_value = 0;
+            std::uint16_t code_len = 0;
+
+            do {
+                if (remaining_buffer_bit_count == 0) {
+                    if (current_data_it == data_end_it) {
+                        std::cerr << "Cannot decode symbol" << std::endl;
+                        return false;
+                    }
+
+                    encoded_buffer = *current_data_it++;
+                    remaining_buffer_bit_count = BYTE_BIT_LENGTH;
+                }
+
+                code_len++;
+                code_value = (code_value << 1) + (encoded_buffer >> --remaining_buffer_bit_count & 1);
+
+            } while (code_value << 1 >= first_code[code_len]);
+
+            symbol = alphabet[first_symbol[code_len - 1] + code_value - first_code[code_len - 1]];
             return true;
         }
 
-        bool decode_block() {
+        bool decode_data(const std::uint16_t end_symbol, std::vector<std::uint8_t> &decoded_data) {
+            while (current_data_it != data_end_it || remaining_buffer_bit_count > 0) {
+                std::uint16_t symbol;
+
+                if (!decode_symbol(symbol)) {
+                    return false;
+                }
+
+                if (symbol == end_symbol) {
+                    break;
+                }
+
+                decoded_data.push_back(symbol);
+            }
+
             return true;
         }
 
-        bool TODO() {
-            return true;
+        bool is_source_proccessed() {
+            return current_data_it == data_end_it;
         }
 };
 
@@ -272,11 +312,8 @@ std::vector<std::uint8_t> decode_huffman(const std::vector<std::uint8_t> &data) 
     auto huffman_decoder = HuffmanDecoder();
     huffman_decoder.set_source(data);
     huffman_decoder.initialize_decoding();
-
     std::vector<std::uint8_t> decoded_data;
 
-//    code_value = 0;
-//    uint16_t code_len = 0;
-
+    huffman_decoder.decode_data(END_OF_BLOCK, decoded_data);
     return decoded_data;
 }

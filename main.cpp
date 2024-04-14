@@ -12,15 +12,23 @@
 
 #include "args.h"
 #include "io.h"
+#include "model.h"
+#include "rle.h"
 #include "huffman.h"
 
 
 int main(int argc, char *argv[]) {
-    std::vector<std::uint8_t> data{'a','a','a','a','a','a','a','a','a','a','b','c','c','c','c','c','c','c','c','c','c','c','c','c','c','c','d','d','d','d','d','d','d'};
-    //read_bin_file("./data/hd01.raw", data);
-    auto encoded_data = encode_huffman(data);
-    auto decoded_data = decode_huffman(encoded_data);
-    //write_bin_file("test.out", encoded_data);
+    std::vector<std::uint8_t> data;
+    read_bin_file("./data/hd01.raw", data);
+    encode_adj_val_diff(data);
+    auto model_rle_data_en = encode_rle(data, 128);
+    auto encoded_data = encode_huffman(model_rle_data_en);
+    write_bin_file("test.huff", encoded_data);
+    read_bin_file("./test.huff", data);
+    auto decoded_data = decode_huffman(data);
+    auto model_rle_data_de = decode_rle(decoded_data, 128);
+    decode_adj_val_diff(model_rle_data_de);
+    write_bin_file("test.raw", model_rle_data_de);
     exit(0);
     ArgParser arg_parser = ArgParser();
     

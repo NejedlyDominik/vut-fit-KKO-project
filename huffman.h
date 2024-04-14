@@ -1,3 +1,13 @@
+/**
+ * VUT FIT KKO - Project - Image data compression using Huffman encoding
+ *
+ * @author Dominik Nejedlý (xnejed09)
+ * @date 14. 4. 2024
+ * 
+ * @brief Huffman code encoding and decoding interface
+ */
+
+
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 
