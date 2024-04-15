@@ -19,22 +19,24 @@
 /**
  * Encode data using RLE.
  * 
- * @param data data to be encoded
+ * @param first iterator pointing to the first element to be encoded
+ * @param last iterator pointing to the end of the range (one behind the last element to be encoded)
  * @param marker RLE marker
  * 
  * @return Encoded data.
  */
-std::vector<std::uint8_t> encode_rle(std::vector<std::uint8_t> &data, std::uint8_t marker);
+std::vector<std::uint8_t> encode_rle(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last, std::uint8_t marker);
 
 /**
  * Decode data encoded using RLE.
  * 
- * @param data data to be decoded
+ * @param first iterator pointing to the first element to be decoded
+ * @param last iterator pointing to the end of the range (one behind the last element to be decoded)
  * @param marker RLE marker
  * 
  * @return Decoded data.
  */
-std::vector<std::uint8_t> decode_rle(std::vector<std::uint8_t> &data, std::uint8_t marker);
+std::vector<std::uint8_t> decode_rle(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last, std::uint8_t marker);
 
 
 #endif

@@ -43,24 +43,24 @@ void encode_and_append_symbol(std::vector<std::uint8_t> &result, uint8_t count, 
 }
 
 
-std::vector<std::uint8_t> encode_rle(std::vector<std::uint8_t> &data, std::uint8_t marker) {
+std::vector<std::uint8_t> encode_rle(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last, std::uint8_t marker) {
     std::vector<std::uint8_t> result;
 
-    if (data.empty()) {
+    if (first == last) {
         return result;
     }
 
     std::uint8_t count = 0;
-    std::uint8_t prev = data.front();
+    std::uint8_t prev = *first;
 
-    for (auto it = data.begin() + 1, end = data.end(); it != end; it++) {
-        if (*it == prev && count < UINT8_MAX) {
+    while (++first < last) {
+        if (*first == prev && count < UINT8_MAX) {
             count++;
             continue;
         }
 
         encode_and_append_symbol(result, count, prev, marker);
-        prev = *it;
+        prev = *first;
         count = 0;
     }
 
@@ -69,33 +69,35 @@ std::vector<std::uint8_t> encode_rle(std::vector<std::uint8_t> &data, std::uint8
 }
 
 
-std::vector<std::uint8_t> decode_rle(std::vector<std::uint8_t> &data, std::uint8_t marker) {
+std::vector<std::uint8_t> decode_rle(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last, std::uint8_t marker) {
     std::uint8_t count, state = MARKER;
     std::vector<std::uint8_t> result;
 
-    for (const auto &val: data) {
+    while (first < last) {
         if (state == MARKER) {
-            if (val == marker) {
+            if (*first == marker) {
                 state = COUNT;
                 continue;
             }
 
-            result.push_back(val);
+            result.push_back(*first);
         }
         else if (state == COUNT) {
-            if (val < RLE_TRESHOLD) {
-                result.insert(result.end(), val + 1, marker);
+            if (*first < RLE_TRESHOLD) {
+                result.insert(result.end(), *first + 1, marker);
                 state = MARKER;
                 continue;
             }
 
-            count = val;
+            count = *first;
             state = SYMBOL;
         }
         else {  // symbol
-            result.insert(result.end(), count + 1, val);
+            result.insert(result.end(), count + 1, *first);
             state = MARKER;
         }
+
+        first++;
     }
 
     return result;

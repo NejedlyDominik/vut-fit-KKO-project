@@ -21,11 +21,11 @@
 #define END_OF_BLOCK BYTE_VALUE_COUNT
 
 
-std::vector<std::uint64_t> get_freqs(const std::vector<std::uint8_t> &data) {
+std::vector<std::uint64_t> get_freqs(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last) {
     std::vector<std::uint64_t> freqs(BYTE_VALUE_COUNT);
 
-    for (const auto &symbol: data) {
-        freqs[symbol]++;
+    while (first < last) {
+        freqs[*first++]++;
     }
 
     return freqs;
@@ -175,9 +175,9 @@ void HuffmanEncoder::encode_symbol(const std::uint16_t symbol, std::vector<std::
 }
 
 
-void HuffmanEncoder::encode_data(const std::vector<std::uint8_t> &data, std::vector<std::uint8_t> &encoded_data) {
-    for (const auto &symbol: data) {
-        encode_symbol(symbol, encoded_data);
+void HuffmanEncoder::encode_data(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last, std::vector<std::uint8_t> &encoded_data) {
+    while (first < last) {
+        encode_symbol(*first++, encoded_data);
     }
 }
 
@@ -192,16 +192,16 @@ void HuffmanEncoder::finalize_encoding(std::vector<std::uint8_t> &encoded_data) 
 }
 
 
-void HuffmanDecoder::set_source(const std::vector<std::uint8_t> &data) {
-    current_data_it = data.begin();
-    data_end_it = data.end();
+void HuffmanDecoder::set_source(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last) {
+    current_source_it = first;
+    source_end_it = last;
 }
 
 
 bool HuffmanDecoder::initialize_decoding() {
-    std::uint16_t code_count_number = *current_data_it++ + 1;
+    std::uint16_t code_count_number = *current_source_it++ + 1;
 
-    if (current_data_it + code_count_number > data_end_it) {
+    if (current_source_it + code_count_number > source_end_it) {
         std::cerr << "Invalid number of symbol counts" << std::endl;
         return false;
     }
@@ -215,17 +215,17 @@ bool HuffmanDecoder::initialize_decoding() {
     for (std::uint16_t i = 0; i < code_count_number; i++) {
         first_code[i] = code_value;
         first_symbol[i] = symbol;
-        code_value = (code_value + *current_data_it) << 1;
-        symbol += *current_data_it++;
+        code_value = (code_value + *current_source_it) << 1;
+        symbol += *current_source_it++;
     }
 
-    if (current_data_it + symbol > data_end_it) {
+    if (current_source_it + symbol > source_end_it) {
         std::cerr << "Invalid symbol alphabet" << std::endl;
         return false;
     }
 
-    alphabet.insert(alphabet.end(), current_data_it, current_data_it + symbol);
-    current_data_it += symbol;
+    alphabet.insert(alphabet.end(), current_source_it, current_source_it + symbol);
+    current_source_it += symbol;
 
     // Add the special end-of-block symbol to alphabet
     alphabet.push_back(END_OF_BLOCK);
@@ -243,12 +243,12 @@ bool HuffmanDecoder::decode_symbol(std::uint16_t &symbol) {
 
     do {
         if (remaining_buffer_bit_count == 0) {
-            if (current_data_it == data_end_it) {
+            if (current_source_it == source_end_it) {
                 std::cerr << "Cannot decode symbol" << std::endl;
                 return false;
             }
 
-            encoded_buffer = *current_data_it++;
+            encoded_buffer = *current_source_it++;
             remaining_buffer_bit_count = BYTE_BIT_LENGTH;
         }
 
@@ -262,7 +262,7 @@ bool HuffmanDecoder::decode_symbol(std::uint16_t &symbol) {
 
 
 bool HuffmanDecoder::decode_data(std::vector<std::uint8_t> &decoded_data) {
-    while (current_data_it != data_end_it || remaining_buffer_bit_count > 0) {
+    while (current_source_it != source_end_it || remaining_buffer_bit_count > 0) {
         std::uint16_t symbol;
 
         if (!decode_symbol(symbol)) {
@@ -281,5 +281,17 @@ bool HuffmanDecoder::decode_data(std::vector<std::uint8_t> &decoded_data) {
 
 
 bool HuffmanDecoder::is_source_proccessed() {
-    return current_data_it == data_end_it;
+    return current_source_it == source_end_it;
+}
+
+
+void HuffmanDecoder::advance_source() {
+    if (current_source_it < source_end_it) {
+        current_source_it++;
+    }
+}
+
+
+std::vector<std::uint8_t>::const_iterator HuffmanDecoder::get_current_source_it() {
+    return current_source_it;
 }

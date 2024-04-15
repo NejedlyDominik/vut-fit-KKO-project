@@ -17,35 +17,42 @@
 #include "huffman.h"
 
 
-std::vector<std::uint8_t> encode_huffman(const std::vector<std::uint8_t> &data) {
+std::vector<std::uint8_t> compress_statically(const std::vector<std::uint8_t> &data, bool use_model) {
     auto huffman_encoder = HuffmanEncoder();
     auto freqs = get_freqs(data);
     std::vector<std::uint8_t> encoded_data;
     huffman_encoder.initialize_encoding(freqs, encoded_data);
-    huffman_encoder.encode_data(data, encoded_data);
+    huffman_encoder.encode_data(data.begin(), data.end(), encoded_data);
     huffman_encoder.finalize_encoding(encoded_data);
     return encoded_data;
 }
 
 
-std::vector<std::uint8_t> decode_huffman(const std::vector<std::uint8_t> &data) {
+bool decompress_statically(const std::vector<std::uint8_t> &data, bool use_model, std::vector<std::uint8_t> &decompressed_data) {
     auto huffman_decoder = HuffmanDecoder();
-    huffman_decoder.set_source(data);
-    huffman_decoder.initialize_decoding();
+    huffman_decoder.set_source(data.begin(), data.end());
+
+    if (!huffman_decoder.initialize_decoding()) {
+        return false;
+    }
+
     std::vector<std::uint8_t> decoded_data;
 
-    huffman_decoder.decode_data(decoded_data);
-    return decoded_data;
+    if (!huffman_decoder.decode_data(decoded_data)) {
+        return false;
+    }
+
+    return true;
 }
 
 
-std::vector<std::uint8_t> compress_statically(const std::vector<std::uint8_t> &data, bool use_model) {
+std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &data, bool use_model, std::uint64_t width_value) {
 
 }
 
 
-std::vector<std::uint8_t> decompress_statically(const std::vector<std::uint8_t> &data, bool use_model) {
-    
+bool decompress_adaptively(const std::vector<std::uint8_t> &data, bool use_model, std::uint64_t width_value, std::vector<std::uint8_t> &decompressed_data) {
+
 }
 
 
@@ -74,30 +81,23 @@ int main(int argc, char *argv[]) {
             auto huffman_encoder = HuffmanEncoder();
 
             if (arg_parser.adapt_scan) {
-
+                output_data = compress_adaptively(input_data, arg_parser.use_model, arg_parser.width_value);
             }
             else {
-                auto freqs = get_freqs(input_data);
-
-                if (arg_parser.use_model) {
-                    encode_adj_val_diff(input_data);
-                }
-
-                output_data = encode_huffman(input_data);
+                output_data = compress_statically(input_data, arg_parser.use_model);
             }
         }
         else {
             auto huffman_decoder = HuffmanDecoder();
 
             if (arg_parser.adapt_scan) {
-
+                if (!decompress_adaptively(input_data, arg_parser.use_model, arg_parser.width_value, output_data)) {
+                    return EXIT_FAILURE;
+                }
             }
             else {
-                output_data = decode_huffman(input_data);
-
-                if (arg_parser.use_model) {
-                    output_data = decode_rle(output_data, 128);
-                    decode_adj_val_diff(output_data);
+                if (!decompress_statically(input_data, arg_parser.use_model, output_data)) {
+                    return EXIT_FAILURE;
                 }
             }
         }
@@ -109,11 +109,3 @@ int main(int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 }
-
-
-//encode_adj_val_diff(data);
-//auto model_rle_data_en = encode_rle(data, 128);
-//auto encoded_data = encode_huffman(model_rle_data_en);
-//auto decoded_data = decode_huffman(data);
-//auto model_rle_data_de = decode_rle(decoded_data, 128);
-//decode_adj_val_diff(model_rle_data_de);

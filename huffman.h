@@ -32,14 +32,14 @@ class HuffmanEncoder {
     public:
         void initialize_encoding(const std::vector<std::uint64_t> &freqs, std::vector<std::uint8_t> &encoded_data);
         void encode_symbol(const std::uint16_t symbol, std::vector<std::uint8_t> &encoded_data);
-        void encode_data(const std::vector<std::uint8_t> &data, std::vector<std::uint8_t> &encoded_data);
+        void encode_data(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last, std::vector<std::uint8_t> &encoded_data);
         void finalize_encoding(std::vector<std::uint8_t> &encoded_data);
 };
 
 class HuffmanDecoder {
     private:
-        std::vector<std::uint8_t>::const_iterator current_data_it;
-        std::vector<std::uint8_t>::const_iterator data_end_it;
+        std::vector<std::uint8_t>::const_iterator current_source_it;
+        std::vector<std::uint8_t>::const_iterator source_end_it;
         std::vector<std::uint64_t> first_code;
         std::vector<std::uint8_t> first_symbol;
         std::vector<std::uint16_t> alphabet;
@@ -47,11 +47,13 @@ class HuffmanDecoder {
         std::uint8_t remaining_buffer_bit_count;
 
     public:
-        void set_source(const std::vector<std::uint8_t> &data);
+        void set_source(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last);
         bool initialize_decoding();
         bool decode_symbol(std::uint16_t &symbol);
         bool decode_data(std::vector<std::uint8_t> &decoded_data);
         bool is_source_proccessed();
+        void advance_source();
+        std::vector<std::uint8_t>::const_iterator HuffmanDecoder::get_current_source_it();
 };
 
 

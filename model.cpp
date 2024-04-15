@@ -8,30 +8,31 @@
  */
 
 
+#include <iterator>
+
 #include "model.h"
 
 
-std::vector<std::uint8_t> encode_adj_val_diff(const std::vector<std::uint8_t> &data) {
-    std::vector<std::uint8_t> result(data.size());
-    std::uint8_t diff, prev = 0;
+std::vector<std::uint8_t> encode_adj_val_diff(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last) {
+    std::vector<std::uint8_t> result(std::distance(first, last));
+    std::uint8_t prev = 0;
 
-    for (std::uint64_t i = 0; i < data.size(); i++) {
-        diff = result[i] - prev;
-        prev = result[i];
-        result[i] = diff;
+    for (auto &val: result) {
+        val = *first - prev;
+        prev = *first++;
     }
 
     return result;
 }
 
 
-std::vector<std::uint8_t> decode_adj_val_diff(const std::vector<std::uint8_t> &data) {
-    std::vector<std::uint8_t> result(data.size());
+std::vector<std::uint8_t> decode_adj_val_diff(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last) {
+    std::vector<std::uint8_t> result(std::distance(first, last));
     std::uint8_t prev = 0;
 
-    for (std::uint64_t i = 0; i < data.size(); i++) {
-        result[i] += prev;
-        prev = result[i];
+    for (auto &val: result) {
+        val = *first + prev;
+        prev = *first++;
     }
 
     return result;

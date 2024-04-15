@@ -19,20 +19,22 @@
 /**
  * Encode data by adjacent value difference transformation.
  * 
- * @param data the data to be encoded (contains the result after encoding)
+ * @param first iterator pointing to the first element to be encoded
+ * @param first iterator pointing to the end of the range (one behind the last element to be encoded)
  * 
  * @return Encoded data.
  */
-std::vector<std::uint8_t> encode_adj_val_diff(const std::vector<std::uint8_t> &data);
+std::vector<std::uint8_t> encode_adj_val_diff(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last);
 
 /**
  * Decode data encoded by adjacent value difference transformation.
  * 
- * @param data the data to be decoded (contains the result after decoding)
+ * @param first iterator pointing to the first element to be decoded
+ * @param first iterator pointing to the end of the range (one behind the last element to be decoded)
  * 
  * @return Decoded data.
  */
-std::vector<std::uint8_t> decode_adj_val_diff(const std::vector<std::uint8_t> &data);
+std::vector<std::uint8_t> decode_adj_val_diff(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last);
 
 
 #endif
