@@ -11,22 +11,28 @@
 #include "model.h"
 
 
-void encode_adj_val_diff(std::vector<std::uint8_t> &data) {
+std::vector<std::uint8_t> encode_adj_val_diff(const std::vector<std::uint8_t> &data) {
+    std::vector<std::uint8_t> result(data.size());
     std::uint8_t diff, prev = 0;
 
-    for (auto &val: data) {
-        diff = val - prev;
-        prev = val;
-        val = diff;
-    } 
+    for (std::uint64_t i = 0; i < data.size(); i++) {
+        diff = result[i] - prev;
+        prev = result[i];
+        result[i] = diff;
+    }
+
+    return result;
 }
 
 
-void decode_adj_val_diff(std::vector<std::uint8_t> &data) {
+std::vector<std::uint8_t> decode_adj_val_diff(const std::vector<std::uint8_t> &data) {
+    std::vector<std::uint8_t> result(data.size());
     std::uint8_t prev = 0;
 
-    for (auto &val: data) {
-        val += prev;
-        prev = val;
+    for (std::uint64_t i = 0; i < data.size(); i++) {
+        result[i] += prev;
+        prev = result[i];
     }
+
+    return result;
 }

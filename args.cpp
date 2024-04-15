@@ -51,10 +51,10 @@ bool ArgParser::parse_args(int argc, char *argv[]) {
                 compress = false;
                 break;
             case 'm':
-                model = true;
+                use_model = true;
                 break;
             case 'a':
-                adapt = true;
+                adapt_scan = true;
                 break;
             case 'i':
                 input_file = optarg;
@@ -82,22 +82,25 @@ bool ArgParser::parse_args(int argc, char *argv[]) {
     }
 
     if (compress) {
-        if (width_value_arg == NULL && adapt) {
-            std::cerr << "For the compression with the adaptive image scanning (paramaters -ca), the image width (parameter -w) must be set" << std::endl;
-            return false;
+        if (width_value_arg == NULL) {
+            if (adapt_scan) {
+                std::cerr << "For the compression with the adaptive image scanning (paramaters -ca), the image width (parameter -w) must be set" << std::endl;
+                return false;
+            }
         }
+        else {
+            char *width_value_end;
+            width_value = std::strtoull(width_value_arg, &width_value_end, 0);
 
-        char *width_value_end;
-        width_value = std::strtoull(width_value_arg, &width_value_end, 0);
+            if (*width_value_end != '\0' || width_value < 1) {
+                std::cerr << "Invalid value of the image width parameter -w: '" << width_value_arg << "' -- a number greater than 0 is expected (width_value >= 1)"  << std::endl;
+                return false;
+            }
 
-        if (*width_value_end != '\0' || width_value < 1) {
-            std::cerr << "Invalid value of the image width parameter -w: '" << width_value_arg << "' -- a number greater than 0 is expected (width_value >= 1)"  << std::endl;
-            return false;
-        }
-
-        if (errno == ERANGE) {
-            std::cerr << "Range error of the image width parameter -w: '" << width_value_arg << "' -- the image width is too large" << std::endl;
-            return false;
+            if (errno == ERANGE) {
+                std::cerr << "Range error of the image width parameter -w: '" << width_value_arg << "' -- the image width is too large" << std::endl;
+                return false;
+            }
         }
     }
 

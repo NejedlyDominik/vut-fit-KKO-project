@@ -21,8 +21,8 @@
 class ArgParser {
     public:
         bool compress = true;           // compression or decompression
-        bool model = false;             // model and RLE
-        bool adapt = false;             // adaptie scanning
+        bool use_model = false;         // model and RLE
+        bool adapt_scan = false;        // adaptive scanning
         char *input_file = NULL;
         char *output_file = NULL;
         std::uint64_t width_value = 0;  // image width  
