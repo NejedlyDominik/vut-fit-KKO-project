@@ -18,18 +18,6 @@
 
 
 int main(int argc, char *argv[]) {
-    std::vector<std::uint8_t> data;
-    read_bin_file("./data/hd01.raw", data);
-    encode_adj_val_diff(data);
-    auto model_rle_data_en = encode_rle(data, 128);
-    auto encoded_data = encode_huffman(model_rle_data_en);
-    write_bin_file("test.huff", encoded_data);
-    read_bin_file("./test.huff", data);
-    auto decoded_data = decode_huffman(data);
-    auto model_rle_data_de = decode_rle(decoded_data, 128);
-    decode_adj_val_diff(model_rle_data_de);
-    write_bin_file("test.raw", model_rle_data_de);
-    exit(0);
     ArgParser arg_parser = ArgParser();
     
     if (!arg_parser.parse_args(argc, argv)) {
@@ -41,5 +29,40 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
 
+    std::vector<std::uint8_t> input_data;
+
+    if (read_bin_file(arg_parser.input_file, input_data)) {
+        return EXIT_FAILURE;
+    }
+
+    std::vector<std::uint8_t> output_data;
+
+    if (arg_parser.compress) {
+        if (arg_parser.adapt) {
+
+        }
+        else {
+
+        }
+    }
+    else {
+        if (arg_parser.adapt) {
+
+        }
+        else {
+            
+        }
+    }
+
+    write_bin_file(arg_parser.output_file, output_data);
+
     return EXIT_SUCCESS;
 }
+
+
+//encode_adj_val_diff(data);
+//auto model_rle_data_en = encode_rle(data, 128);
+//auto encoded_data = encode_huffman(model_rle_data_en);
+//auto decoded_data = decode_huffman(data);
+//auto model_rle_data_de = decode_rle(decoded_data, 128);
+//decode_adj_val_diff(model_rle_data_de);
