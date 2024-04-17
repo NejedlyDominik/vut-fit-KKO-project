@@ -8,14 +8,44 @@
  */
 
 
+#include <algorithm>
+
 #include "rle.h"
 
 
+#define BYTE_VALUE_COUNT 256
 #define RLE_TRESHOLD 3
 
 #define MARKER 0
 #define COUNT 1
 #define SYMBOL 2
+
+
+std::uint8_t get_optimal_marker(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last) {
+    if (first == last) {
+        return DEFAULT_MARKER;
+    }
+
+    std::vector<std::uint64_t> val_seqs_of_len_one(BYTE_VALUE_COUNT);
+    std::uint8_t prev = *first;
+    bool len_one_seq = true;
+
+    while (++first < last) {
+        if (prev != *first) {
+            if (len_one_seq) {
+                val_seqs_of_len_one[prev]++;
+            }
+
+            prev = *first;
+            len_one_seq = true;
+        }
+        else {
+            len_one_seq = false;
+        }
+    }
+
+    return std::distance(val_seqs_of_len_one.begin(), std::min_element(val_seqs_of_len_one.begin(), val_seqs_of_len_one.end()));
+}
 
 
 /**
@@ -73,29 +103,31 @@ std::vector<std::uint8_t> decode_rle(std::vector<std::uint8_t>::const_iterator f
     std::uint8_t count, state = MARKER;
     std::vector<std::uint8_t> result;
 
-    for (; first < last; first++) {
+    while (first < last) {
         if (state == MARKER) {
             if (*first == marker) {
                 state = COUNT;
-                continue;
             }
-
-            result.push_back(*first);
+            else {
+                result.push_back(*first);
+            }
         }
         else if (state == COUNT) {
             if (*first < RLE_TRESHOLD) {
                 result.insert(result.end(), *first + 1, marker);
                 state = MARKER;
-                continue;
             }
-
-            count = *first;
-            state = SYMBOL;
+            else {
+                count = *first;
+                state = SYMBOL;
+            }
         }
         else {  // symbol
             result.insert(result.end(), count + 1, *first);
             state = MARKER;
         }
+
+        first++;
     }
 
     return result;

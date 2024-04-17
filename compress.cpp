@@ -1,7 +1,7 @@
+#include "compress.h"
 #include "model.h"
 #include "rle.h"
 #include "huffman.h"
-
 
 #define COMPRESSED 1
 #define UNCOMPRESSED 0
@@ -13,7 +13,7 @@ std::vector<std::uint8_t> compress_statically(const std::vector<std::uint8_t> &d
 
     if (use_model) {
         auto preprocessed_data = encode_adj_val_diff(data.begin(), data.end());
-        preprocessed_data = encode_rle(preprocessed_data.begin(), preprocessed_data.end(), 128);
+        preprocessed_data = encode_rle(preprocessed_data.begin(), preprocessed_data.end(), DEFAULT_MARKER);
         huffman_encoder.initialize_encoding(get_freqs(preprocessed_data.begin(), preprocessed_data.end()), compressed_data);
         huffman_encoder.encode_data(preprocessed_data.begin(), preprocessed_data.end(), compressed_data);
     }
@@ -47,12 +47,12 @@ bool decompress_statically(const std::vector<std::uint8_t> &data, bool use_model
         return false;
     }
 
-    if (!huffman_decoder.decode_data(decompressed_data)) {
+    if (!huffman_decoder.decode_data_by_end_symbol(decompressed_data)) {
         return false;
     }
 
     if (use_model) {
-        decompressed_data = decode_rle(decompressed_data.begin(), decompressed_data.end(), 128);
+        decompressed_data = decode_rle(decompressed_data.begin(), decompressed_data.end(), DEFAULT_MARKER);
         decompressed_data = decode_adj_val_diff(decompressed_data.begin(), decompressed_data.end());
     }
 
