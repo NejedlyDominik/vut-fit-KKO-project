@@ -31,8 +31,8 @@ std::vector<std::uint8_t> decode_adj_val_diff(std::vector<std::uint8_t>::const_i
     std::uint8_t prev = 0;
 
     for (auto &val: result) {
-        val = *first + prev;
-        prev = *first++;
+        val = *first++ + prev;
+        prev = val;
     }
 
     return result;

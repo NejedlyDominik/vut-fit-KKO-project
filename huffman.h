@@ -16,7 +16,7 @@
 #include <cstdint>
 
 
-std::vector<std::uint64_t> get_freqs(const std::vector<std::uint8_t> &data);
+std::vector<std::uint64_t> get_freqs(std::vector<std::uint8_t>::const_iterator first, std::vector<std::uint8_t>::const_iterator last);
 
 class HuffmanEncoder {
     private:
@@ -53,7 +53,7 @@ class HuffmanDecoder {
         bool decode_data(std::vector<std::uint8_t> &decoded_data);
         bool is_source_proccessed();
         void advance_source();
-        std::vector<std::uint8_t>::const_iterator HuffmanDecoder::get_current_source_it();
+        std::vector<std::uint8_t>::const_iterator get_current_source_it();
 };
 
 

@@ -73,7 +73,7 @@ std::vector<std::uint8_t> decode_rle(std::vector<std::uint8_t>::const_iterator f
     std::uint8_t count, state = MARKER;
     std::vector<std::uint8_t> result;
 
-    while (first < last) {
+    for (; first < last; first++) {
         if (state == MARKER) {
             if (*first == marker) {
                 state = COUNT;
@@ -96,8 +96,6 @@ std::vector<std::uint8_t> decode_rle(std::vector<std::uint8_t>::const_iterator f
             result.insert(result.end(), count + 1, *first);
             state = MARKER;
         }
-
-        first++;
     }
 
     return result;
