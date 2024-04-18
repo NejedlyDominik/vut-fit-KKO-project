@@ -329,9 +329,12 @@ bool HuffmanDecoder::is_source_proccessed() {
 }
 
 
-void HuffmanDecoder::advance_source() {
+void HuffmanDecoder::advance_source(std::uint64_t num) {
     if (current_source_it < source_end_it) {
-        current_source_it++;
+        current_source_it += num;
+    }
+    else {
+        current_source_it = source_end_it;
     }
 }
 

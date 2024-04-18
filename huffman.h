@@ -56,7 +56,7 @@ class HuffmanDecoder {
         bool decode_data_by_end_symbol(std::vector<std::uint8_t> &decoded_data, std::uint16_t end_symbol = END_OF_BLOCK);
         bool decode_data_by_count(std::vector<std::uint8_t> &decoded_data, std::uint64_t count);
         bool is_source_proccessed();
-        void advance_source();
+        void advance_source(std::uint64_t num = 1);
         std::vector<std::uint8_t>::const_iterator get_current_source_it();
 };
 
