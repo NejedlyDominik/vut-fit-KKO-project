@@ -1,4 +1,5 @@
 #include <utility>
+#include <iostream>
 
 #include "compress.h"
 #include "model.h"
@@ -13,6 +14,8 @@
 #define VERTICAL_SCAN 0
 
 #define BLOCK_SIDE_SIZE 16
+
+#define BYTE_BIT_LENGTH 8
 
 
 std::vector<std::uint8_t> compress(const std::vector<std::uint8_t> &data, const bool use_model, HuffmanEncoder &huffman_encoder) {
@@ -193,38 +196,36 @@ void deserialize_block(
 }
 
 
-std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &data, const bool use_model, const std::uint64_t width_value) {
+std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &data, const bool use_model, const std::uint64_t data_width) {
     const std::uint64_t data_size = data.size();
     std::vector<std::uint8_t> compressed_data;
 
     for (std::uint8_t i = 0; i < 64; i += 8) {
         compressed_data.push_back(data_size >> i);
+        compressed_data.push_back(data_width >> i);
     }
 
-    for (std::uint8_t i = 0; i < 64; i += 8) {
-        compressed_data.push_back(width_value >> i);
-    }
-
-    const std::uint64_t height_value = data_size / width_value + (data_size % width_value != 0 ? 1 : 0);
+    const std::uint64_t height_value = data_size / data_width + (data_size % data_width != 0 ? 1 : 0);
     std::vector<std::uint8_t> deserialized_block(BLOCK_SIDE_SIZE * BLOCK_SIDE_SIZE);
     std::vector<std::uint8_t> serialized_block(BLOCK_SIDE_SIZE * BLOCK_SIDE_SIZE);
     std::uint64_t data_horizontal_offset = 0;
     std::uint64_t data_vertical_offset = 0;
     std::uint64_t processed_val_count = 0;
+    auto huffman_encoder = HuffmanEncoder();
 
-    while (processed_val_count != data_size) {
-        std::uint16_t block_val_count = 0;
-        std::uint64_t data_offset = data_horizontal_offset + data_vertical_offset * width_value;
-        std::uint8_t block_width = std::min(static_cast<std::uint64_t>(BLOCK_SIDE_SIZE), width_value - data_horizontal_offset);
+    while (processed_val_count < data_size) {
+        std::uint64_t data_block_offset = data_horizontal_offset + data_vertical_offset * data_width;
+        std::uint8_t block_width = std::min(static_cast<std::uint64_t>(BLOCK_SIDE_SIZE), data_width - data_horizontal_offset);
         std::uint8_t block_height = std::min(static_cast<std::uint64_t>(BLOCK_SIDE_SIZE), height_value - data_vertical_offset);
+        std::uint16_t block_val_count = block_height * block_width;
 
         for (std::uint8_t i = 0; i < block_height; i++) {
             std::uint16_t block_offset = i * BLOCK_SIDE_SIZE;
-            data_offset += i * width_value;
+            std::uint64_t data_offset = i * data_width + data_block_offset;
 
             for (std::uint8_t j = 0; j < block_width; j++) {
                 if (j + data_offset >= data_size) {
-                    block_val_count = j;
+                    block_val_count += j - block_width;
                     break;
                 }
 
@@ -232,16 +233,33 @@ std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &d
             }
         }
 
-        block_val_count += (block_height - 1) * block_width;
         data_horizontal_offset += BLOCK_SIDE_SIZE;
 
-        if (data_horizontal_offset >= width_value) {
+        if (data_horizontal_offset >= data_width) {
             data_horizontal_offset = 0;
             data_vertical_offset += BLOCK_SIDE_SIZE;
         }
 
+        serialize_block(deserialized_block, false, block_val_count, block_width, block_height, serialized_block);
+        auto compressed_block_h = compress(serialized_block, use_model, huffman_encoder);
+
         if (use_model) {
-            
+            transpose_block_emplace(deserialized_block);
+            serialize_block(deserialized_block, true, block_val_count, block_width, block_height, serialized_block);
+            auto compressed_block_v = compress(serialized_block, use_model, huffman_encoder);
+
+            if (compressed_block_h.size() > compressed_block_v.size()) {
+                compressed_data.push_back(VERTICAL_SCAN);
+                compressed_data.insert(compressed_data.end(), compressed_block_v.begin(), compressed_block_v.begin() + block_val_count);
+            }
+            else {
+                compressed_data.push_back(HORIZONTAL_SCAN);
+                compressed_data.insert(compressed_data.end(), compressed_block_h.begin(), compressed_block_h.begin() + block_val_count);
+            }
+        }
+        else {
+            compressed_data.push_back(HORIZONTAL_SCAN);
+            compressed_data.insert(compressed_data.end(), compressed_block_h.begin(), compressed_block_h.begin() + block_val_count);
         }
 
         processed_val_count += block_val_count;
@@ -251,6 +269,19 @@ std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &d
 }
 
 
-//bool decompress_adaptively(const std::vector<std::uint8_t> &data, const bool use_model, const std::uint64_t width_value, std::vector<std::uint8_t> &decompressed_data) {
-//
-//}
+bool decompress_adaptively(const std::vector<std::uint8_t> &data, const bool use_model, std::vector<std::uint8_t> &decompressed_data) {
+    if (data.size() < 16) {
+        std::cerr << "Invalid compressed data - incomplete size and width of decompressed data" << std::endl;
+        return false;
+    }
+
+    std::uint64_t decompressed_data_size = 0;
+    std::uint64_t data_width = 0;
+
+    for (std::uint8_t i = 0; i < 8; i++) {
+        decompressed_data_size |= static_cast<uint64_t>(data[i]) << i * BYTE_BIT_LENGTH;
+        data_width |= static_cast<uint64_t>(data[i + 1]) << i * BYTE_BIT_LENGTH;
+    }
+
+    
+}
