@@ -58,6 +58,7 @@ class HuffmanDecoder {
         bool is_source_proccessed();
         void advance_source(std::uint64_t num = 1);
         std::vector<std::uint8_t>::const_iterator get_current_source_it();
+        std::vector<std::uint8_t>::const_iterator get_source_end_it();
 };
 
 

@@ -330,7 +330,7 @@ bool HuffmanDecoder::is_source_proccessed() {
 
 
 void HuffmanDecoder::advance_source(std::uint64_t num) {
-    if (current_source_it < source_end_it) {
+    if (current_source_it + num < source_end_it) {
         current_source_it += num;
     }
     else {
@@ -341,4 +341,8 @@ void HuffmanDecoder::advance_source(std::uint64_t num) {
 
 std::vector<std::uint8_t>::const_iterator HuffmanDecoder::get_current_source_it() {
     return current_source_it;
+}
+
+std::vector<std::uint8_t>::const_iterator HuffmanDecoder::get_source_end_it() {
+    return source_end_it;
 }
