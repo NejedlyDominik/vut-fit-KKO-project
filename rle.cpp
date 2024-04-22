@@ -49,11 +49,11 @@ std::uint8_t get_optimal_marker(std::vector<std::uint8_t>::const_iterator first,
 
 
 /**
- * Encode the symbol using RLE and append it to the specified code sequence.
+ * @brief Encode the symbol using RLE and append it to the specified code sequence.
  * 
- * @param result the sequence to which the encoded symbol is to be appended
- * @param count the number of repetitions of the symbol
- * @param symbol symbol to be encoded
+ * @param result The sequence to which the encoded symbol is to be appended
+ * @param count The number of repetitions of the symbol
+ * @param symbol Symbol to be encoded
  * @param marker RLE marker
  */
 void encode_and_append_symbol(std::vector<std::uint8_t> &result, uint8_t count, uint8_t symbol, uint8_t marker) {

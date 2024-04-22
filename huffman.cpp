@@ -80,7 +80,7 @@ std::vector<std::uint8_t> HuffmanEncoder::compute_code_bitlens(const std::vector
 }
 
 
-void HuffmanEncoder::compute_codes(const std::vector<std::uint64_t> &freqs, bool add_end_of_block) {
+void HuffmanEncoder::compute_codes(const std::vector<std::uint64_t> &freqs) {
     std::vector<std::uint16_t> used_symbols;
     std::vector<std::uint64_t> used_symbol_freqs;
 
@@ -92,7 +92,7 @@ void HuffmanEncoder::compute_codes(const std::vector<std::uint64_t> &freqs, bool
     }
 
     if (!used_symbols.empty()) {
-        if (add_end_of_block) {
+        if (is_added_end_of_block) {
             // Add a special end-of-block symbol (256) with zero default occurrence to determine the length of the code so that it can be recomputed during decoding
             used_symbols.push_back(END_OF_BLOCK);
             used_symbol_freqs.push_back(0);
@@ -124,7 +124,7 @@ void HuffmanEncoder::compute_codes(const std::vector<std::uint64_t> &freqs, bool
         code_bitlen_to_symbols.resize(code_bitlens_and_used_symbols.back().first);
 
         // Collect symbols according to their lengths but exclude the special end-of-block symbol symbol if present
-        for (auto it = code_bitlens_and_used_symbols.begin(), end = add_end_of_block ? code_bitlens_and_used_symbols.end() - 1 : code_bitlens_and_used_symbols.end(); it != end; it++) {
+        for (auto it = code_bitlens_and_used_symbols.begin(), end = is_added_end_of_block ? code_bitlens_and_used_symbols.end() - 1 : code_bitlens_and_used_symbols.end(); it != end; it++) {
             code_bitlen_to_symbols[it->first - 1].push_back(it->second);
         }
     }
@@ -138,7 +138,8 @@ void HuffmanEncoder::clear_buffer() {
 
 
 void HuffmanEncoder::initialize_encoding(const std::vector<std::uint64_t> &freqs, std::vector<std::uint8_t> &encoded_data, bool add_end_of_block) {
-    compute_codes(freqs, add_end_of_block);
+    is_added_end_of_block = add_end_of_block;
+    compute_codes(freqs);
 
     if (code_bitlen_to_symbols.size() != BYTE_BIT_LENGTH || code_bitlen_to_symbols[BYTE_BIT_LENGTH - 1].size() < BYTE_VALUE_COUNT) {
         encoded_data.push_back(code_bitlen_to_symbols.size() - 1);
@@ -193,8 +194,10 @@ void HuffmanEncoder::encode_data(std::vector<std::uint8_t>::const_iterator first
 
 
 void HuffmanEncoder::finalize_encoding(std::vector<std::uint8_t> &encoded_data) {
-    // Encode the special end-of-block symbol symbol at the end of encoded data
-    encode_symbol(END_OF_BLOCK, encoded_data);
+    if (is_added_end_of_block) {
+        // Encode the special end-of-block symbol symbol at the end of encoded data
+        encode_symbol(END_OF_BLOCK, encoded_data);
+    }
 
     if (remaining_buffer_bit_count < BYTE_BIT_LENGTH) {
         encoded_data.push_back(encoded_buffer);

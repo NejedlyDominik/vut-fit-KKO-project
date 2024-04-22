@@ -15,6 +15,14 @@
 #include "compress.h"
 
 
+/**
+ * @brief Based on command line arguments compress or decompress the input file in the specified mode or print help to the standard output.
+ * 
+ * @param argc The number of command line arguments
+ * @param argv Values of command line arguments
+ * 
+ * @return 0 in case of successful compression or decompression, 1 otherwise.
+ */
 int main(int argc, char *argv[]) {
     ArgParser arg_parser = ArgParser();
 

@@ -20,21 +20,21 @@
  */
 class ArgParser {
     public:
-        bool compress = true;           // compression or decompression
-        bool use_model = false;         // model and RLE
-        bool adapt_scan = false;        // adaptive scanning
+        bool compress = true;           // Compression or decompression
+        bool use_model = false;         // Model and RLE
+        bool adapt_scan = false;        // Adaptive scanning
         char *input_file = NULL;
         char *output_file = NULL;
-        std::uint64_t width_value = 0;  // image width  
+        std::uint64_t width_value = 0;  // Image width  
         bool help = false;
 
         /**
-         * Print usage of the program to the standard output.
+         * @brief Print usage of the program to the standard output.
          */
         void print_usage();
 
         /**
-         * Parse command line arguments.
+         * @brief Parse command line arguments.
          * 
          * @param argc The number of command line arguments
          * @param argv Values of command line arguments
