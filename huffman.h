@@ -38,7 +38,7 @@ class HuffmanEncoder {
         std::uint8_t encoded_buffer;                                // The buffer storing the last 8 encoded bits
         std::uint8_t remaining_buffer_bit_count;                    // The number of remaining available bits in encoded buffer
         std::vector<std::vector<uint8_t>> code_bitlen_to_symbols;   // Symbols sorted by the lengths of their markers
-        bool is_added_end_of_block;                                 // Specifies whether a code for the special end-of-block symbol is added
+        bool is_added_end_of_block;                                 // Indicates whether a code for the special end-of-block symbol is added
 
         /**
          * @brief Compute the bit lengths of the canonical Huffman codes according to frequencies of occurences of symbols.
@@ -67,7 +67,7 @@ class HuffmanEncoder {
          * 
          * @param freqs Frequencies of occurences of symbols
          * @param encoded_data Buffer for storing encoded data
-         * @param add_end_of_block Specifies whether a code for the special end-of-block symbol should be added (true by default)
+         * @param add_end_of_block Indicates whether a code for the special end-of-block symbol should be added (true by default)
          */
         void initialize_encoding(const std::vector<std::uint64_t> &freqs, std::vector<std::uint8_t> &encoded_data, bool add_end_of_block = true);
 
@@ -121,9 +121,9 @@ class HuffmanDecoder {
         /**
          * @brief Prepare the first codes and the first symbols  according to codebook in encoded data.
          * 
-         * @param add_end_of_block Specifies whether a code for the special end-of-block symbol should be added (true by default)
+         * @param add_end_of_block Indicates whether a code for the special end-of-block symbol should be added (true by default)
          * 
-         * @return True in case of successful initialization, False otherwise.
+         * @return True in case of successful initialization, false otherwise.
          */
         bool initialize_decoding(bool add_end_of_block = true);
 
@@ -132,7 +132,7 @@ class HuffmanDecoder {
          * 
          * @param symbol The resulting decoded symbol
          * 
-         * @return True if the symbol is successufully decoded, False otherwise.
+         * @return True if the symbol is successufully decoded, false otherwise.
          */
         bool decode_symbol(std::uint16_t &symbol);
 
@@ -144,7 +144,7 @@ class HuffmanDecoder {
          * @param decoded_data Buffer for storing decoded data
          * @param end_symbol The last symbol to be decoded (end-of-block symbol by default) that is not added to decoded data buffer
          * 
-         * @return True in case of successul decoding, False otherwise.
+         * @return True in case of successul decoding, false otherwise.
          */
         bool decode_data_by_end_symbol(std::vector<std::uint8_t> &decoded_data, std::uint16_t end_symbol = END_OF_BLOCK);
 
@@ -156,14 +156,14 @@ class HuffmanDecoder {
          * @param decoded_data Buffer for storing decoded data
          * @param count The number of symbols to be decoded
          * 
-         * @return True in case of successul decoding, False otherwise.
+         * @return True in case of successul decoding, false otherwise.
          */
         bool decode_data_by_count(std::vector<std::uint8_t> &decoded_data, std::uint64_t count);
 
         /**
          * @brief Check if the source is processed.
          * 
-         * @return True if the source is processed, False otherwise.
+         * @return True if the source is processed, false otherwise.
          */
         bool is_source_proccessed();
 

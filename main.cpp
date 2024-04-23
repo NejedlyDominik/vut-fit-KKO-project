@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     if (!input_data.empty()) {
         if (arg_parser.compress) {
             if (arg_parser.adapt_scan) {
-                output_data = compress_adaptively(input_data, arg_parser.use_model, arg_parser.width_value);
+                output_data = compress_adaptively(input_data, arg_parser.width_value, arg_parser.use_model);
             }
             else {
                 output_data = compress_statically(input_data, arg_parser.use_model);
@@ -54,12 +54,12 @@ int main(int argc, char *argv[]) {
         }
         else {
             if (arg_parser.adapt_scan) {
-                if (!decompress_adaptively(input_data, arg_parser.use_model, output_data)) {
+                if (!decompress_adaptively(input_data, output_data, arg_parser.use_model)) {
                     return EXIT_FAILURE;
                 }
             }
             else {
-                if (!decompress_statically(input_data, arg_parser.use_model, output_data)) {
+                if (!decompress_statically(input_data, output_data, arg_parser.use_model)) {
                     return EXIT_FAILURE;
                 }
             }
