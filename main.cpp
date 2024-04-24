@@ -14,6 +14,13 @@
 #include "io.h"
 #include "compress.h"
 
+#ifdef STATS
+#include <chrono>
+#include "huffman.h"
+#include <cmath>
+#include <iostream>
+#endif
+
 
 /**
  * @brief Based on command line arguments compress or decompress the input file in the specified mode or print help to the standard output.
@@ -43,6 +50,10 @@ int main(int argc, char *argv[]) {
 
     std::vector<std::uint8_t> output_data;
 
+#ifdef STATS
+    const auto start = std::chrono::high_resolution_clock::now();
+#endif
+
     if (!input_data.empty()) {
         if (arg_parser.compress) {
             if (arg_parser.adapt_scan) {
@@ -66,9 +77,47 @@ int main(int argc, char *argv[]) {
         }
     }
 
+#ifdef STATS
+    const auto end = std::chrono::high_resolution_clock::now();
+#endif
+
     if (!write_bin_file(arg_parser.output_file, output_data)) {
         return EXIT_FAILURE;
     }
+
+#ifdef STATS
+    const std::chrono::duration<double> diff{end - start};
+    std::vector<std::uint64_t> freqs;
+    std::uint64_t original_data_size;
+
+    if (arg_parser.compress) {
+        freqs = get_freqs(input_data.begin(), input_data.end());
+        original_data_size = input_data.size();
+    }
+    else {
+        freqs = get_freqs(output_data.begin(), output_data.end());
+        original_data_size = output_data.size();
+    }
+
+    double entrophy = 0;
+
+    for (const auto &val: freqs) {
+        if (val != 0) {
+            entrophy += (static_cast<double>(val) / original_data_size) * std::log2(static_cast<double>(original_data_size) / val);
+        }
+    }
+
+    if (arg_parser.compress) {
+        std::cout << "Bits per symbol: " << (output_data.size() * 8.0) / original_data_size << std::endl;
+        std::cout << "Compression time (s): " << diff.count() << std::endl;
+        std::cout << "Original data entrophy: " << entrophy << std::endl;
+    }
+    else {
+        std::cout << "Bits per symbol: " << (input_data.size() * 8.0) / original_data_size << std::endl;
+        std::cout << "Dempression time (s): " << diff.count() << std::endl;
+        std::cout << "Original data entrophy: " << entrophy << std::endl;
+    }
+#endif
 
     return EXIT_SUCCESS;
 }
