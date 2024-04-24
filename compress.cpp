@@ -142,8 +142,7 @@ bool decompress(
 }
 
 
-std::vector<std::uint8_t> compress_statically(const std::vector<std::uint8_t> &data, const bool use_model) {
-    bool use_rle = use_model;
+std::vector<std::uint8_t> compress_statically(const std::vector<std::uint8_t> &data, const bool use_model, const bool use_rle) {
     auto huffman_encoder = HuffmanEncoder();
     std::vector<std::uint8_t> compressed_data;
     compress(data, huffman_encoder, compressed_data, use_model, use_rle);
@@ -151,8 +150,7 @@ std::vector<std::uint8_t> compress_statically(const std::vector<std::uint8_t> &d
 }
 
 
-bool decompress_statically(const std::vector<std::uint8_t> &data, std::vector<std::uint8_t> &decompressed_data, const bool use_model) {
-    bool use_rle = use_model;
+bool decompress_statically(const std::vector<std::uint8_t> &data, std::vector<std::uint8_t> &decompressed_data, const bool use_model, const bool use_rle) {
     auto huffman_decoder = HuffmanDecoder();
     huffman_decoder.set_source(data.begin(), data.end());
     return decompress(decompressed_data, huffman_decoder, use_model, use_rle);
@@ -307,8 +305,7 @@ void deserialize_block(
 }
 
 
-std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &data, const std::uint64_t data_width, const bool use_model) {
-    bool use_rle = use_model;
+std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &data, const std::uint64_t data_width, const bool use_model, const bool use_rle) {
     const std::uint64_t original_data_size = data.size();
     std::vector<std::uint8_t> compressed_data(16);
 
@@ -387,13 +384,12 @@ std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &d
 }
 
 
-bool decompress_adaptively(const std::vector<std::uint8_t> &data, std::vector<std::uint8_t> &decompressed_data, const bool use_model) {
+bool decompress_adaptively(const std::vector<std::uint8_t> &data, std::vector<std::uint8_t> &decompressed_data, const bool use_model, const bool use_rle) {
     if (data.size() < 16) {
         std::cerr << "Invalid compressed data - incomplete size or width of the decompressed data" << std::endl;
         return false;
     }
 
-    bool use_rle = use_model;
     std::uint64_t original_data_size = 0;
     std::uint64_t data_width = 0;
 

@@ -54,23 +54,25 @@ int main(int argc, char *argv[]) {
     const auto start = std::chrono::high_resolution_clock::now();
 #endif
 
+    bool use_rle =  arg_parser.use_model;
+
     if (!input_data.empty()) {
         if (arg_parser.compress) {
             if (arg_parser.adapt_scan) {
-                output_data = compress_adaptively(input_data, arg_parser.width_value, arg_parser.use_model);
+                output_data = compress_adaptively(input_data, arg_parser.width_value, arg_parser.use_model, use_rle);
             }
             else {
-                output_data = compress_statically(input_data, arg_parser.use_model);
+                output_data = compress_statically(input_data, arg_parser.use_model, use_rle);
             }
         }
         else {
             if (arg_parser.adapt_scan) {
-                if (!decompress_adaptively(input_data, output_data, arg_parser.use_model)) {
+                if (!decompress_adaptively(input_data, output_data, arg_parser.use_model, use_rle)) {
                     return EXIT_FAILURE;
                 }
             }
             else {
-                if (!decompress_statically(input_data, output_data, arg_parser.use_model)) {
+                if (!decompress_statically(input_data, output_data, arg_parser.use_model, use_rle)) {
                     return EXIT_FAILURE;
                 }
             }
