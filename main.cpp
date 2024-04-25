@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     const auto start = std::chrono::high_resolution_clock::now();
 #endif
 
-    bool use_rle =  arg_parser.use_model;
+    bool use_rle = arg_parser.use_model;
 
     if (!input_data.empty()) {
         if (arg_parser.compress) {
