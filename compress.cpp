@@ -10,6 +10,7 @@
 
 #include <utility>
 #include <iostream>
+#include <iterator>
 
 #include "compress.h"
 #include "model.h"
@@ -142,17 +143,21 @@ bool decompress(
 }
 
 
-std::vector<std::uint8_t> compress_statically(const std::vector<std::uint8_t> &data, const bool use_model, const bool use_rle) {
+void compress_statically(const std::vector<std::uint8_t> &data, std::vector<std::uint8_t> &compressed_data, const bool use_model, const bool use_rle) {
     auto huffman_encoder = HuffmanEncoder();
-    std::vector<std::uint8_t> compressed_data;
     compress(data, huffman_encoder, compressed_data, use_model, use_rle);
-    return compressed_data;
 }
 
 
-bool decompress_statically(const std::vector<std::uint8_t> &data, std::vector<std::uint8_t> &decompressed_data, const bool use_model, const bool use_rle) {
+bool decompress_statically(
+    std::vector<std::uint8_t>::const_iterator first, 
+    std::vector<std::uint8_t>::const_iterator last, 
+    std::vector<std::uint8_t> &decompressed_data, 
+    const bool use_model, 
+    const bool use_rle
+) {
     auto huffman_decoder = HuffmanDecoder();
-    huffman_decoder.set_source(data.begin(), data.end());
+    huffman_decoder.set_source(first, last);
     return decompress(decompressed_data, huffman_decoder, use_model, use_rle);
 }
 
@@ -305,9 +310,15 @@ void deserialize_block(
 }
 
 
-std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &data, const std::uint64_t data_width, const bool use_model, const bool use_rle) {
+void compress_adaptively(
+    const std::vector<std::uint8_t> &data, 
+    std::vector<std::uint8_t> &compressed_data, 
+    const std::uint64_t data_width, 
+    const bool use_model, 
+    const bool use_rle
+) {
     const std::uint64_t original_data_size = data.size();
-    std::vector<std::uint8_t> compressed_data(16);
+    compressed_data.resize(16);
 
     // Store the original data size and its width to the beginning of the compressed data
     for (std::uint8_t i = 0; i < 8; i++) {
@@ -379,13 +390,17 @@ std::vector<std::uint8_t> compress_adaptively(const std::vector<std::uint8_t> &d
 
         remaining_decompressed_data_size -= block_val_count;
     }
-
-    return compressed_data;
 }
 
 
-bool decompress_adaptively(const std::vector<std::uint8_t> &data, std::vector<std::uint8_t> &decompressed_data, const bool use_model, const bool use_rle) {
-    if (data.size() < 16) {
+bool decompress_adaptively(
+    std::vector<std::uint8_t>::const_iterator first, 
+    std::vector<std::uint8_t>::const_iterator last, 
+    std::vector<std::uint8_t> &decompressed_data, 
+    const bool use_model, 
+    const bool use_rle
+) {
+    if (std::distance(first, last) < 16) {
         std::cerr << "Invalid compressed data - incomplete size or width of the decompressed data" << std::endl;
         return false;
     }
@@ -395,8 +410,8 @@ bool decompress_adaptively(const std::vector<std::uint8_t> &data, std::vector<st
 
     // Get the original data size and its width
     for (std::uint8_t i = 0; i < 8; i++) {
-        original_data_size |= static_cast<uint64_t>(data[i]) << i * BYTE_BIT_LENGTH;
-        data_width |= static_cast<uint64_t>(data[i + 8]) << i * BYTE_BIT_LENGTH;
+        original_data_size |= static_cast<uint64_t>(*first) << i * BYTE_BIT_LENGTH;
+        data_width |= static_cast<uint64_t>(*(first++ + 8)) << i * BYTE_BIT_LENGTH;
     }
 
     const std::uint64_t data_height = original_data_size / data_width + (original_data_size % data_width != 0 ? 1 : 0);
@@ -407,7 +422,7 @@ bool decompress_adaptively(const std::vector<std::uint8_t> &data, std::vector<st
     std::uint64_t data_vertical_offset = 0;
     std::uint64_t remaining_decompressed_data_size = original_data_size;
     auto huffman_decoder = HuffmanDecoder();
-    huffman_decoder.set_source(data.begin() + 16, data.end());
+    huffman_decoder.set_source(first + 8, last);
     const std::uint64_t unaligned_data_remainder = original_data_size % data_width;
 
     while (remaining_decompressed_data_size > 0) {
