@@ -459,9 +459,11 @@ bool decompress_adaptively(
             return false;
         }
 
-        deserialize_block(serialized_block, is_transposed, serialized_block.size(), block_width, block_height, deserialized_block);
-
-        if (is_transposed) {
+        if (!is_transposed) {
+            deserialize_block(serialized_block, is_transposed, serialized_block.size(), block_width, block_height, deserialized_block);
+        }
+        else {
+            deserialize_block(serialized_block, is_transposed, serialized_block.size(), block_height, block_width, deserialized_block);
             transpose_block_in_place(deserialized_block);
         }
 
