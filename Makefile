@@ -18,7 +18,7 @@ $(OBJECT_FILES): %.o: %.cpp
 
 pack: $(PACK)
 
-$(PACK): $(SRC_FILES) $(HEADER_FILES) Makefile
+$(PACK): $(SRC_FILES) $(HEADER_FILES) Makefile KKO_project_doc.pdf
 	zip -r $@ $^
 
 clean:
